@@ -2,7 +2,6 @@
 
 import torch
 import torchaudio
-from audiobox.models.clap_models.laion_clap_model import laion_clap
 
 from sam_audio.model.config import ClapRankerConfig
 from sam_audio.ranking.ranker import Ranker
@@ -10,6 +9,7 @@ from sam_audio.ranking.ranker import Ranker
 
 class ClapRanker(Ranker):
     def __init__(self, config: ClapRankerConfig):
+        import laion_clap
         from laion_clap.training import data
 
         self.laion_data_modlue = data
