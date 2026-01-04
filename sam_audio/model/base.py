@@ -19,15 +19,13 @@ class BaseModel(torch.nn.Module, ModelHubMixin):
         cls,
         *,
         model_id: str,
-        cache_dir: str,
+        revision: Optional[str],
+        cache_dir: Optional[str],
         force_download: bool,
-        proxies: Optional[Dict],
-        resume_download: bool,
         local_files_only: bool,
         token: Union[str, bool, None],
         map_location: str = "cpu",
         strict: bool = True,
-        revision: Optional[str] = None,
         **model_kwargs,
     ):
         if os.path.isdir(model_id):
@@ -35,11 +33,9 @@ class BaseModel(torch.nn.Module, ModelHubMixin):
         else:
             cached_model_dir = snapshot_download(
                 repo_id=model_id,
-                revision=cls.revision,
+                revision=revision or getattr(cls, "revision", None),
                 cache_dir=cache_dir,
                 force_download=force_download,
-                proxies=proxies,
-                resume_download=resume_download,
                 token=token,
                 local_files_only=local_files_only,
             )

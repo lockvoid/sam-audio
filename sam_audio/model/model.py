@@ -252,6 +252,7 @@ class SAMAudio(BaseModel):
         ode_opt: Dict[str, Any] = DFLT_ODE_OPT,
         reranking_candidates: int = 1,
         predict_spans: bool = False,
+        progress_callback: Optional[callable] = None,
     ) -> SeparationResult:
         # Encode audio
         forward_args = self._get_forward_args(batch, candidates=reranking_candidates)
@@ -274,12 +275,21 @@ class SAMAudio(BaseModel):
         if noise is None:
             noise = torch.randn_like(audio_features)
 
+        # Calculate total ODE steps for progress reporting
+        step_size = ode_opt.get("options", {}).get("step_size", 2 / 32)
+        total_steps = int(1.0 / step_size)
+        step_counter = [0]  # Use list to allow mutation in closure
+
         def vector_field(t, noisy_audio):
             res = self.forward(
                 noisy_audio=noisy_audio,
                 time=t.expand(noisy_audio.size(0)),
                 **forward_args,
             )
+            # Report progress after each ODE step
+            step_counter[0] += 1
+            if progress_callback is not None:
+                progress_callback(step_counter[0], total_steps, t.item())
             return res
 
         states = odeint(
